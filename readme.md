@@ -1,100 +1,137 @@
-# ♻️ AI Deteksi Sampah - Model Integration Guide
+﻿# ♻️ AI Deteksi Sampah - Panduan Integrasi (React & Vanilla JS)
 
-Dokumentasi ini ditujukan untuk mempermudah integrasi model Machine Learning (**TensorFlow.js**) pendeteksi jenis sampah ke dalam aplikasi web (React.js maupun Vanilla JS).
-
-Model ini menggunakan **Binary Classification** untuk mendeteksi dua kategori utama:
-1.  **Botol Plastik** (Anorganik)
-2.  **Sisa Makanan** (Organik)
+Dokumentasi ini dirancang untuk memudahkan integrasi model Machine Learning (TensorFlow.js) ke dalam proyek web. Model ini dilatih untuk mendeteksi dua jenis sampah:
+1. Botol Plastik (Sampah Anorganik)
+2. Sisa Makanan (Sampah Organik)
 
 ---
 
-## 📂 Struktur Project
+## 📂 1. Persiapan File Model AI
 
-Pastikan file model ditempatkan dengan benar agar dapat diakses oleh browser:
+Langkah pertama adalah menyiapkan file model yang telah diberikan oleh tim Machine Learning. Model ini biasanya terdiri dari:
+- model.json: Struktur arsitektur model.
+- group1-shard1of1.bin (atau file serupa): Bobot model.
 
-```text
-your-project/
-├── public/ (atau root folder)
-│   └── model/
-│       ├── model.json           <-- File arsitektur model
-│       └── group1-shard1of1.bin <-- File bobot (weights)
-├── src/ (untuk React)
-│   └── hooks/
-│       └── useDeteksiSampah.js  <-- Custom Hook
-├── index.html                   <-- Contoh implementasi Vanilla JS
-└── script.js                    <-- Logika Vanilla JS
-```
+### Penempatan File:
+Salin folder model/ ke direktori publik proyek Anda agar dapat diakses oleh browser:
+- React.js: Masukkan ke folder public/.
+- Vanilla JS: Masukkan ke root folder (sejajar dengan index.html).
+
+**Struktur Folder yang Direkomendasikan:**
+`	ext
+📂 nama-project/
+├── 📂 public/ (atau root folder)
+│   └── 📂 model/
+│       ├── model.json
+│       └── group1-shard1of1.bin
+`
 
 ---
 
-## 🚀 Panduan Integrasi - React.js
+## 🚀 2. Implementasi di React.js
 
-### 1. Instalasi
-Install library TensorFlow.js di project React kamu:
-```bash
+### Langkah 1: Instalasi Library
+Jalankan perintah berikut di terminal proyek React Anda:
+`ash
 npm install @tensorflow/tfjs
-```
+`
 
-### 2. Penggunaan Custom Hook
-Gunakan `useDeteksiSampah.js` yang sudah membungkus logika kompleks seperti *Memory Management GPU*, *Preprocessing Tensor*, dan *Normalisasi*.
+### Langkah 2: Setup Custom Hook
+Gunakan file useDeteksiSampah.js dan letakkan di dalam folder src/hooks/. File ini menangani manajemen memori (GPU) dan pemrosesan gambar secara otomatis.
 
-**Nilai yang dikembalikan:**
-- `isReady`: `true` jika model sudah terunduh.
-- `statusText`: Pesan status (misal: "Model Siap!").
-- `isPredicting`: `true` saat AI sedang bekerja.
-- `hasil`: Objek berisi `label` dan `confidence`.
-- `prediksi(imgElement)`: Fungsi untuk menjalankan deteksi pada elemen gambar.
-- `resetHasil()`: Menghapus hasil prediksi sebelumnya.
+### Langkah 3: Penggunaan di Komponen
+Berikut adalah contoh implementasi pada komponen UI:
 
-### 3. Contoh Implementasi
-```javascript
-import { useRef } from 'react';
+`javascript
+import React, { useRef } from 'react';
 import { useDeteksiSampah } from './hooks/useDeteksiSampah';
 
 const App = () => {
   const { isReady, statusText, isPredicting, hasil, prediksi } = useDeteksiSampah();
   const imgRef = useRef();
 
-  return (
-    <div>
-      <h2>{statusText}</h2>
-      <input type="file" onChange={(e) => {
-        imgRef.current.src = URL.createObjectURL(e.target.files[0]);
-      }} disabled={!isReady} />
-      
-      <img ref={imgRef} onLoad={() => prediksi(imgRef.current)} style={{ display: 'none' }} />
+  const handlePilihGambar = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      imgRef.current.src = URL.createObjectURL(file);
+    }
+  };
 
-      {isPredicting && <p>Menganalisis...</p>}
-      {hasil && <p>Hasil: {hasil.label} ({hasil.confidence}%)</p>}
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>Detektor Sampah AI</h1>
+      <p>Status: <strong>{statusText}</strong></p>
+      
+      <input 
+        type="file" 
+        onChange={handlePilihGambar} 
+        disabled={!isReady} 
+        accept="image/*"
+      />
+      
+      <div style={{ marginTop: '20px' }}>
+        <img 
+          ref={imgRef} 
+          onLoad={() => prediksi(imgRef.current)} 
+          style={{ maxWidth: '300px', display: imgRef.current?.src ? 'block' : 'none' }} 
+          alt="Pratinjau Sampah"
+        />
+      </div>
+
+      {isPredicting && <p style={{ color: 'blue' }}>Menganalisis gambar...</p>}
+      
+      {hasil && (
+        <div style={{ marginTop: '15px', padding: '15px', background: '#d1fae5', borderRadius: '8px' }}>
+          <p><strong>Hasil:</strong> {hasil.label}</p>
+          <p><strong>Akurasi:</strong> {hasil.confidence}%</p>
+        </div>
+      )}
     </div>
   );
 };
-```
+
+export default App;
+`
 
 ---
 
-## 📜 Panduan Integrasi - Vanilla JS
+## 📜 3. Implementasi di Vanilla JS (HTML Biasa)
 
-Untuk penggunaan tanpa framework, Anda bisa langsung menggunakan `script.js`.
+Jika Anda tidak menggunakan framework, Anda bisa menggunakan CDN.
 
-### 1. Load Script
-Pastikan library TensorFlow.js sudah di-load di `index.html`:
-```html
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="script.js"></script>
-```
+### Langkah 1: Setup index.html
+`html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deteksi Sampah AI</title>
+    <!-- TensorFlow.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+    <h2>Status AI: <span id="status">Memuat Model...</span></h2>
+    
+    <input type="file" id="uploadInput" accept="image/*">
+    <br><br>
+    <img id="gambarPreview" style="display:none; max-width: 300px;">
+    
+    <div id="containerHasil" style="display:none; margin-top: 15px; padding: 15px; background: #eee;">
+        <p id="labelHasil"></p>
+        <p id="confidenceHasil"></p>
+    </div>
 
-### 2. Fungsi Utama
-Panggil `loadModel()` saat inisialisasi dan `predictImage(imgElement)` untuk mendeteksi gambar.
+    <script src="script.js"></script>
+</body>
+</html>
+`
 
 ---
 
-## 🛠️ Catatan Teknis
+## 🛠️ 4. Detail Teknis (Otomatis)
 
-- **Preprocessing:** Gambar otomatis di-resize ke `224x224` piksel.
-- **Normalization:** Nilai piksel dikonversi ke rentang `[-1.0, 1.0]` sesuai standar MobileNetV2.
-- **Memory Management:** Menggunakan `tf.tidy()` untuk mencegah kebocoran memori pada GPU/VRAM.
-- **Channel:** Hanya menggunakan 3 channel warna (RGB), membuang Alpha channel jika ada.
-
----
-*Dibuat untuk mempermudah transisi dari Model ML ke Production UI.*
+Tim pengembang tidak perlu khawatir tentang detail berikut, karena sudah ditangani oleh sistem:
+- **Auto-Resize**: Gambar diubah menjadi **224x224** piksel secara otomatis.
+- **Normalisasi**: Nilai piksel dikonversi ke skala **-1.0 hingga 1.0**.
+- **Manajemen Memori**: Menggunakan tf.tidy() untuk mencegah kebocoran memori (memory leak) pada browser agar tetap ringan.
