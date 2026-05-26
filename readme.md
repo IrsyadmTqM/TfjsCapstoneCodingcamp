@@ -12,7 +12,7 @@ Model dapat mendeteksi:
 
 Langkah pertama adalah menyiapkan file model dari tim Machine Learning. File model biasanya terdiri dari:
 - `model.json` - Struktur arsitektur model
-- `group1-shard1of1.bin` - Bobot model (atau file .bin lainnya)
+- `group1-shard1of3.bin`, `group1-shard2of3.bin`, `group1-shard3of3.bin` - File bobot model (dapat berjumlah multiple shards)
 
 ### Penempatan File
 
@@ -27,7 +27,9 @@ nama-project/
 ├── public/ (atau root folder)
 │   └── model/
 │       ├── model.json
-│       └── group1-shard1of1.bin
+│       ├── group1-shard1of3.bin
+│       ├── group1-shard2of3.bin
+│       └── group1-shard3of3.bin
 ```
 
 ---
