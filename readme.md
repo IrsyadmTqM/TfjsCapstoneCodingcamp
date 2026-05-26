@@ -1,48 +1,52 @@
-﻿# ♻️ AI Deteksi Sampah - Panduan Integrasi (React & Vanilla JS)
+# AI Deteksi Sampah - Panduan Integrasi
 
-Dokumentasi ini dirancang untuk memudahkan integrasi model Machine Learning (TensorFlow.js) ke dalam proyek web. Model ini dilatih untuk mendeteksi dua jenis sampah:
-1. Botol Plastik (Sampah Anorganik)
-2. Sisa Makanan (Sampah Organik)
+Dokumentasi lengkap untuk integrasi model Machine Learning (**TensorFlow.js**) ke dalam proyek web.
+
+Model dapat mendeteksi:
+- **Botol Plastik** (Sampah Anorganik)
+- **Sisa Makanan** (Sampah Organik)
 
 ---
 
-## 📂 1. Persiapan File Model AI
+## 1. Persiapan File Model AI
 
-Langkah pertama adalah menyiapkan file model yang telah diberikan oleh tim Machine Learning. Model ini biasanya terdiri dari:
-- model.json: Struktur arsitektur model.
-- group1-shard1of1.bin (atau file serupa): Bobot model.
+Langkah pertama adalah menyiapkan file model dari tim Machine Learning. File model biasanya terdiri dari:
+- `model.json` - Struktur arsitektur model
+- `group1-shard1of1.bin` - Bobot model (atau file .bin lainnya)
 
-### Penempatan File:
-Salin folder model/ ke direktori publik proyek Anda agar dapat diakses oleh browser:
-- React.js: Masukkan ke folder public/.
-- Vanilla JS: Masukkan ke root folder (sejajar dengan index.html).
+### Penempatan File
 
-**Struktur Folder yang Direkomendasikan:**
-`	ext
-📂 nama-project/
-├── 📂 public/ (atau root folder)
-│   └── 📂 model/
+Salin folder `model/` ke direktori publik proyek Anda agar dapat diakses oleh browser:
+- **React.js**: Masukkan ke folder `public/`
+- **Vanilla JS**: Masukkan ke root folder (sejajar dengan `index.html`)
+
+**Struktur folder yang direkomendasikan:**
+
+```
+nama-project/
+├── public/ (atau root folder)
+│   └── model/
 │       ├── model.json
 │       └── group1-shard1of1.bin
-`
+```
 
 ---
 
-## 🚀 2. Implementasi di React.js
+## 2. Implementasi di React.js
 
 ### Langkah 1: Instalasi Library
 Jalankan perintah berikut di terminal proyek React Anda:
-`ash
+```bash
 npm install @tensorflow/tfjs
-`
+```
 
 ### Langkah 2: Setup Custom Hook
-Gunakan file useDeteksiSampah.js dan letakkan di dalam folder src/hooks/. File ini menangani manajemen memori (GPU) dan pemrosesan gambar secara otomatis.
+Gunakan file `useDeteksiSampah.js` dan letakkan di dalam folder `src/hooks/`. File ini menangani manajemen memori (GPU) dan pemrosesan gambar secara otomatis.
 
 ### Langkah 3: Penggunaan di Komponen
 Berikut adalah contoh implementasi pada komponen UI:
 
-`javascript
+```javascript
 import React, { useRef } from 'react';
 import { useDeteksiSampah } from './hooks/useDeteksiSampah';
 
@@ -91,16 +95,16 @@ const App = () => {
 };
 
 export default App;
-`
+```
 
 ---
 
-## 📜 3. Implementasi di Vanilla JS (HTML Biasa)
+## 3. Implementasi di Vanilla JS
 
 Jika Anda tidak menggunakan framework, Anda bisa menggunakan CDN.
 
-### Langkah 1: Setup index.html
-`html
+### Langkah 1: Setup `index.html`
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -125,13 +129,18 @@ Jika Anda tidak menggunakan framework, Anda bisa menggunakan CDN.
     <script src="script.js"></script>
 </body>
 </html>
-`
+```
+
+### Langkah 2: Logika di `script.js`
+Pastikan logika pemrosesan gambar (resize, normalisasi) sesuai dengan standar model yang ada di `useDeteksiSampah.js`.
 
 ---
 
-## 🛠️ 4. Detail Teknis (Otomatis)
+## 4. Detail Teknis
 
-Tim pengembang tidak perlu khawatir tentang detail berikut, karena sudah ditangani oleh sistem:
-- **Auto-Resize**: Gambar diubah menjadi **224x224** piksel secara otomatis.
-- **Normalisasi**: Nilai piksel dikonversi ke skala **-1.0 hingga 1.0**.
-- **Manajemen Memori**: Menggunakan tf.tidy() untuk mencegah kebocoran memori (memory leak) pada browser agar tetap ringan.
+(Informasi ini sudah ditangani otomatis oleh sistem)
+
+### Proses Otomatis:
+- **Auto-Resize**: Gambar diubah menjadi 224x224 piksel
+- **Normalisasi**: Nilai piksel dikonversi ke skala -1.0 hingga 1.0
+- **Manajemen Memori**: Menggunakan `tf.tidy()` untuk mencegah memory leak pada browser
