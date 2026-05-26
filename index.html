@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoScan AI - Deteksi & Daur Ulang Sampah</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    
+    <style>
+        /* Gaya Dasar & Tema Gelap Futuristik */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin-top: 40px;
+            padding-bottom: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #00e676;
+            margin-bottom: 5px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* Kotak Upload & Preview Gambar */
+        .card {
+            background-color: #242424;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+            border: 1px solid #333;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            border: 2px solid #00e676;
+            color: #00e676;
+            background-color: transparent;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #00e676;
+            color: #121212;
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        #gambarSampah {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px dashed #444;
+            margin: 15px auto;
+            display: none;
+        }
+
+        /* Tampilan Hasil Klasifikasi AI */
+        .result-box {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            background-color: #1e1e1e;
+            color: #00e676;
+            display: inline-block;
+        }
+
+        /* Panel Rekomendasi Gemini AI */
+        .gemini-box {
+            background-color: #1e293b;
+            border-left: 4px solid #38bdf8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: left;
+            display: none; /* Muncul setelah klasifikasi selesai */
+        }
+
+        .gemini-title {
+            color: #38bdf8;
+            margin-top: 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .gemini-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            white-space: pre-line; /* Menjaga format spasi/enter dari AI */
+        }
+
+        /* EFEK LOADING SCREEN LAYER PENUH */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease;
+        }
+
+        .loader-spinner {
+            width: 70px;
+            height: 70px;
+            border: 6px solid #2a2a2a;
+            border-top: 6px solid #00e676;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            color: #ffffff;
+            margin-top: 25px;
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        .loading-subtitle {
+            color: #888888;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loadingOverlay">
+        <div class="loader-spinner"></div>
+        <h2 class="loading-title">Membangunkan AI Pendeteksi Sampah...</h2>
+        <p class="loading-subtitle">Mengunduh arsitektur model (~12MB)</p>
+    </div>
+
+    <div class="container">
+        <h1>EcoScan AI</h1>
+        <p class="subtitle">Klasifikasi sampah pintar bertenaga On-Device Deep Learning & Gemini AI</p>
+
+        <div class="card">
+            <div class="upload-btn-wrapper">
+                <button class="btn">Pilih / Foto Sampah</button>
+                <input type="file" id="uploadInput" accept="image/*">
+            </div>
+            
+            <img id="gambarSampah" src="" alt="Preview Sampah">
+            
+            <div>
+                <span id="hasilPrediksi" class="result-box">Silakan pilih gambar terlebih dahulu.</span>
+            </div>
+        </div>
+
+        <div id="geminiBox" class="gemini-box">
+            <h3 class="gemini-title">✨ Analisis Potensi Daur Ulang (Gemini AI)</h3>
+            <div id="geminiContent" class="gemini-content">Sedang menghubungkan ke Gen AI...</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
