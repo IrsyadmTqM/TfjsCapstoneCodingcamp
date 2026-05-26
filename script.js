@@ -20,11 +20,9 @@ async function loadModel() {
   try {
     model = await tf.loadGraphModel(MODEL_URL);
     statusEl.textContent = 'Model Siap!';
-    statusEl.style.color = '#10b981';
     uploadInput.disabled = false;
   } catch (error) {
     statusEl.textContent = 'Gagal memuat model!';
-    statusEl.style.color = '#dc2626';
     console.error('Error loading model:', error);
   }
 }
